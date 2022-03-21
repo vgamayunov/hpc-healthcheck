@@ -1,14 +1,16 @@
 #!/bin/bash
+install_dir=/anfhome/apps/hpc-healthcheck
+pdsh=pdsh
+
+
 source /etc/profile.d/modules.sh
 module use /usr/share/Modules/modulefiles
 module add gcc-9.2.0 mpi/hpcx
 
-pdsh=pdsh
+cd $install_dir
 numnodes=$(sort -u $PBS_NODEFILE | wc -l)
+vm_size=$(curl -sH Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" | jq '.compute.vmSize')
 
-vm_size=$(curl -sH Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" |jq '.compute.vmSize')
-
-cd $HOME/healthcheck
 
 echo Running STREAM ...
 $pdsh -w $(sort -u $PBS_NODEFILE | tr '\n' ',') "cd $PWD/stream; ./run.sh" | grep Triad | sort -g -k3 -r
